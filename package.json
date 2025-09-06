@@ -1,0 +1,14 @@
+{
+  "name": "llm-chart-maker",
+  "version": "1.0.0",
+  "description": "LLM chart maker skeleton",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^4.9.5"
+  }
+}
