@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LLM Chart Maker</title>
+</head>
+<body>
+  <h1>LLM Chart Maker</h1>
+  <form id="form">
+    <textarea id="text" rows="10" cols="80" placeholder="Enter text here..."></textarea>
+    <br>
+    <button type="submit">Generate Chart</button>
+  </form>
+  <pre id="output"></pre>
+  <script>
+    async function generateChart(event) {
+      event.preventDefault();
+      const text = document.getElementById('text').value;
+      const response = await fetch('/api/generateChart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      const data = await response.json();
+      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+    }
+    document.getElementById('form').addEventListener('submit', generateChart);
+  </script>
+</body>
+</html>
