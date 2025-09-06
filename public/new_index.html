@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LLM Chart Maker</title>
+  <!-- Import fonts for a modern look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap"
+    rel="stylesheet"
+  />
+  <!-- Mermaid library for rendering flowcharts -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    /* Colour palette based on viral-token-factory.vercel.app */
+    :root {
+      --brand-color: #a855f7;
+      --accent-color: #ec4899;
+      --hero-gradient-start: #10b981;
+      --hero-gradient-end: #059669;
+      --stat-bg: rgba(30, 27, 75, 0.8);
+      --stat-border: rgba(255, 255, 255, 0.1);
+      --panel-bg: rgba(24, 24, 44, 0.8);
+      --input-bg: rgba(40, 40, 70, 0.8);
+      --input-border: rgba(255, 255, 255, 0.1);
+      --text-light: #f4f3ff;
+      --text-muted: #b9b6d3;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow-x: hidden;
+      /* Multi-layered gradients to evoke a cosmic, energetic background */
+      background:
+        radial-gradient(at 30% 40%, rgba(60, 0, 80, 0.9) 0%, rgba(4, 0, 20, 0.7) 60%, rgba(0, 0, 15, 1) 100%),
+        radial-gradient(at 70% 70%, rgba(20, 0, 50, 0.8) 0%, rgba(0, 0, 30, 0.7) 50%, rgba(0, 0, 10, 1) 100%);
+    }
+
+    /* Navigation bar */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(6px);
+    }
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: var(--text-light);
+    }
+    .navbar nav a {
+      margin: 0 0.7rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    .navbar nav a:hover {
+      color: var(--text-light);
+    }
+    .navbar .buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn {
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, var(--brand-color), var(--accent-color));
+      color: white;
+    }
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--brand-color);
+      color: var(--brand-color);
+    }
+    .btn-outline:hover {
+      background: var(--brand-color);
+      color: white;
+    }
+
+    /* Hero section */
+    .hero {
+      margin-top: 6rem;
+      padding: 4rem 1.5rem 3rem;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin: 0;
+      background: linear-gradient(90deg, var(--hero-gradient-start), var(--hero-gradient-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p.subhead {
+      margin-top: 1rem;
+      font-size: 1.3rem;
+      color: var(--text-muted);
+    }
+
+    /* Stats section */
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 3rem;
+    }
+    .stat {
+      background: var(--stat-bg);
+      border: 1px solid var(--stat-border);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      width: 150px;
+    }
+    .stat .number {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--hero-gradient-start);
+    }
+    .stat .label {
+      margin-top: 0.3rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* CTA: input & generate button */
+    .cta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      margin-top: 3rem;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      background: var(--panel-bg);
+      border: 1px solid var(--stat-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .cta textarea {
+      flex: 1 1 300px;
+      padding: 1rem;
+      font-size: 1rem;
+      background: var(--input-bg);
+      border: none;
+      color: var(--text-light);
+      resize: vertical;
+      min-height: 120px;
+      font-family: monospace;
+    }
+    .cta textarea::placeholder {
+      color: var(--text-muted);
+    }
+    .cta button {
+      flex: 0 0 auto;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--brand-color), var(--accent-color));
+      border: none;
+      color: white;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .cta button:hover {
+      opacity: 0.9;
+    }
+
+    /* Diagram container styling */
+    #diagram {
+      margin-top: 3rem;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      padding: 0 1rem 4rem;
+    }
+    #diagram .mermaid {
+      background: var(--panel-bg);
+      border: 1px solid var(--stat-border);
+      border-radius: 12px;
+      padding: 1rem;
+      max-width: 800px;
+      overflow-x: auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+      .stat {
+        width: 130px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation bar -->
+  <div class="navbar">
+    <div class="logo">attention.ad</div>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Feed</a>
+      <a href="#">Explore</a>
+      <a href="#">Leaderboard</a>
+      <a href="#">How it Works</a>
+    </nav>
+    <div class="buttons">
+      <button class="btn btn-primary">Create Coin</button>
+      <button class="btn btn-outline">Sign In</button>
+    </div>
+  </div>
+
+  <!-- Hero section -->
+  <section class="hero">
+    <h1>Transform Social Media Into Passive Income</h1>
+    <p class="subhead">Create, launch, and earn from viral content instantly</p>
+    <div class="stats">
+      <div class="stat">
+        <div class="number">10K+</div>
+        <div class="label">Creators</div>
+      </div>
+      <div class="stat">
+        <div class="number">$2.6B</div>
+        <div class="label">Total Earnings</div>
+      </div>
+      <div class="stat">
+        <div class="number">30s</div>
+        <div class="label">Launch Time</div>
+      </div>
+    </div>
+    <!-- Chart Maker CTA -->
+    <div class="cta">
+      <textarea id="inputText" rows="4" placeholder="Paste or type your text here..."></textarea>
+      <button onclick="generateChart()">Generate Chart</button>
+    </div>
+  </section>
+
+  <!-- Diagram output -->
+  <div id="diagram"></div>
+
+  <script>
+    // Initialize Mermaid with a dark theme reminiscent of the viral site
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      themeVariables: {
+        background: 'transparent',
+        primaryColor: '#0ea5e9',
+        primaryTextColor: '#d1fae5',
+        nodeBorder: '#334155',
+        lineColor: '#4f46e5',
+        fontFamily: 'Inter, sans-serif',
+      }
+    });
+
+    /**
+     * Convert plain text into a simple flowchart definition.
+     * Each sentence becomes a node, and arrows are added sequentially.
+     * @param {string} text
+     * @returns {string} Mermaid flowchart definition
+     */
+    function createFlowchartDefinition(text) {
+      const sentences = text
+        .split(/(?<=[.!?])\s+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (sentences.length === 0) return '';
+      let definition = 'graph TD\n';
+      const nodeIds = sentences.map((_, idx) => `N${idx}`);
+      sentences.forEach((sentence, idx) => {
+        const nodeId = nodeIds[idx];
+        // Escape backticks and quotes
+        const label = sentence
+          .replace(/`/g, '\\`')
+          .replace(/\"/g, '"');
+        definition += `  ${nodeId}[\"${label}\"]\n`;
+      });
+      // Connect nodes sequentially
+      for (let i = 0; i < nodeIds.length - 1; i++) {
+        definition += `  ${nodeIds[i]} --> ${nodeIds[i + 1]}\n`;
+      }
+      return definition;
+    }
+
+    // Render the flowchart into the diagram container
+    function generateChart() {
+      const input = document.getElementById('inputText').value;
+      const def = createFlowchartDefinition(input);
+      const diagram = document.getElementById('diagram');
+      if (!def) {
+        diagram.innerHTML = '';
+        return;
+      }
+      // Mermaid requires a unique id for each render
+      const id = 'chart_' + Math.random().toString(36).substring(2, 9);
+      const svgContainer = document.createElement('div');
+      svgContainer.className = 'mermaid';
+      svgContainer.textContent = def;
+      diagram.innerHTML = '';
+      diagram.appendChild(svgContainer);
+      mermaid.run({ nodes: [svgContainer] });
+    }
+  </script>
+</body>
+</html>
